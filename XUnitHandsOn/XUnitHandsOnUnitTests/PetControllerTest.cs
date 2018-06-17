@@ -21,11 +21,14 @@ namespace XUnitHandsOnUnitTests
             Controller = new PetController(new PetQuery(), new CreatePetCommandHandler(), new DeletePetCommandHandler());
         }
 
+        //Atributo do XUnit
         [Fact]
         public async void Pet_Get_By_All_Should_Be_Ok()
         {
+            //Chamada para a web API
             var pet = await Controller.Get();
 
+            //Valida o tipo da resosta com FluentAssertations
             pet.Should().BeOfType<OkNegotiatedContentResult<List<PetModel>>>();
         }
 
