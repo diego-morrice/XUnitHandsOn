@@ -1,12 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Web.Http.Results;
 using Bogus;
 using FluentAssertions;
 using Xunit;
-using Xunit.Extensions;
-using Xunit.Sdk;
 using XUnitHandsOn.Commands;
 using XUnitHandsOn.Controllers;
 using XUnitHandsOn.Handlers;
@@ -82,6 +78,42 @@ namespace XUnitHandsOnUnitTests
             result.Should().BeOfType<OkResult>();
         }
 
+        [Fact]
+        public async void Pet_Trying_Put_Null_Pet()
+        {
+            var result = await Controller.Put(null);
+            result.Should().BeOfType<BadRequestResult>();
+        }
+
+        [Theory]
+        [MemberData(nameof(FakerPetsInvalid), parameters: 3)]
+        public async void Pet_Trying_Put_Invalid_Pet(CreatePetCommand pet)
+        {
+            var result = await Controller.Put(pet);
+            result.Should().BeOfType<BadRequestResult>();
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        public async void Pet_Delete_Valid_Pet(int id)
+        {
+            var result = await Controller.Delete(new DeletePetCommand()
+            {
+                Id = id
+            });
+            result.Should().BeOfType<OkResult>();
+        }
+
+        [Fact]
+        public async void Pet_Trying_Delete_Null_Pet()
+        {
+            var result = await Controller.Delete(null);
+            result.Should().BeOfType<BadRequestResult>();
+        }
+
+        #region Fakers
         public static IEnumerable<object[]> FakerPets(int numTests)
         {
             var fakePets = new Faker<CreatePetCommand>(locale: "pt_BR").StrictMode(true)
@@ -98,6 +130,20 @@ namespace XUnitHandsOnUnitTests
             return result;
         }
 
+        public static IEnumerable<object[]> FakerPetsInvalid(int numTests)
+        {
+            var fakePets = new Faker<CreatePetCommand>(locale: "pt_BR").StrictMode(false)
+                .RuleFor(p => p.Name, (f, p) => f.Name.FirstName());
+
+            var pets = fakePets.Generate(numTests);
+            var result = new List<object[]>();
+
+            pets.ForEach(f => result.Add(new object[] { f }));
+
+            return result;
+        }
+
+        #endregion
     }
 
 }
